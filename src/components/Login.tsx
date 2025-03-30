@@ -3,20 +3,25 @@ import { Button } from "./ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 import { useState } from "react";
+import { useAuth } from "./context/AuthProvider";
 
 
 function Login() {
   const [loading, setLoading] = useState(false);
+  const {handleSignIn} = useAuth()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    handleSignIn(email,password)
     setTimeout(() => {
-      console.log()
       setLoading(false);
       alert("Logged in successfully!"); // Replace with actual login logic
     }, 2000);
   };
+
   return (
     <>
       <Card className="w-full max-w-md hadow-lg">
@@ -32,6 +37,7 @@ function Login() {
                 type="email"
                 placeholder="Enter your email"
                 className="mt-1"
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
@@ -42,6 +48,7 @@ function Login() {
                 type="password"
                 placeholder="Enter your password"
                 className="mt-1"
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
