@@ -10,7 +10,7 @@ function Navbar() {
   
   return (
     <nav className="border border-black flex p-5">
-      <h1 className="">ChatLite</h1>
+      <a className="" href="/">ChatLite</a>
 
       {user ? <p className="ml-2"> Welcome Back! {user.email}</p> : <></>}
       <div className="mr-0 ml-auto space-x-2">

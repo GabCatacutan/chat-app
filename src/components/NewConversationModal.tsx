@@ -14,11 +14,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@radix-ui/react-popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { ChevronsUpDown, Check } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { db } from "@/config/firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { useAuth } from "./context/AuthProvider";
 
 // Define the user type
 interface User {
@@ -31,6 +39,7 @@ export function NewConversationModal() {
   const [selectedUserId, setSelectedUserId] = useState<string>(""); // Store selected user ID
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -38,10 +47,12 @@ export function NewConversationModal() {
         setLoading(true);
         const usersCollection = collection(db, "users");
         const userSnapshot = await getDocs(usersCollection);
-        const userList: User[] = userSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          username: doc.data().username || "Unknown User",
-        }));
+        const userList: User[] = userSnapshot.docs
+          .map((doc) => ({
+            id: doc.id,
+            username: doc.data().username || "Unknown User",
+          }))
+          .filter((u) => u.id !== user?.uid);
         setUsers(userList);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -51,7 +62,7 @@ export function NewConversationModal() {
     };
 
     fetchUsers();
-  }, []);
+  }, [user]);
 
   // Handle submit button click
   const handleSave = () => {
@@ -65,7 +76,9 @@ export function NewConversationModal() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">+</Button>
+        <Button variant="outline" disabled={loading}>
+          {loading ? "Loading..." : "+"}
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -83,7 +96,8 @@ export function NewConversationModal() {
               className="w-[200px] justify-between"
             >
               {selectedUserId
-                ? users.find((user) => user.id === selectedUserId)?.username || "Unknown User"
+                ? users.find((user) => user.id === selectedUserId)?.username ||
+                  "Unknown User"
                 : "Select User to chat with"}
               <ChevronsUpDown className="opacity-50" />
             </Button>
@@ -103,7 +117,9 @@ export function NewConversationModal() {
                         key={user.id}
                         value={user.id}
                         onSelect={(currentValue: string) => {
-                          setSelectedUserId(currentValue === selectedUserId ? "" : currentValue);
+                          setSelectedUserId(
+                            currentValue === selectedUserId ? "" : currentValue
+                          );
                           setOpen(false);
                         }}
                       >
@@ -111,7 +127,9 @@ export function NewConversationModal() {
                         <Check
                           className={cn(
                             "ml-auto",
-                            selectedUserId === user.id ? "opacity-100" : "opacity-0"
+                            selectedUserId === user.id
+                              ? "opacity-100"
+                              : "opacity-0"
                           )}
                         />
                       </CommandItem>
