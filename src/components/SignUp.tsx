@@ -4,25 +4,29 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { useAuth } from "./context/AuthProvider";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/config/firebase";
 
 function SignUp() {
-  const {handleSignUp} = useAuth()
+  const { handleSignUp } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState<string>("")
-  const [password, setPassword] = useState<string>("")
-  const [username, setUsername] = useState<string>("")
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+
 
   const handleSignUpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    console.log(email, password, username)
+    setLoading(true)
+    console.log(email, password, username);
     try {
       await handleSignUp(email, password, username);
     } catch (error: any) {
       alert(error.message);
     }
-  };
 
+    setLoading(false)
+  };
 
   return (
     <Card className="w-full max-w-md shadow-lg">
@@ -75,13 +79,8 @@ function SignUp() {
               required
             />
           </div>
-          <div className="flex justify-between text-sm">
-            <a href="#" className="text-blue-400 hover:underline">
-              Forgot password?
-            </a>
-          </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Signing-Up" : "Sign-Up"}
           </Button>
         </form>
       </CardContent>

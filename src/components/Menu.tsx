@@ -23,7 +23,7 @@ export default function Menu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => (window.location.href = "/login")}>
-          Login
+          Login/Sign-Up
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleSignOut()}>
           Logout

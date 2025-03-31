@@ -6,7 +6,8 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { ReactNode, useContext, useState, createContext, useEffect } from "react";
-import { auth } from "@/config/firebase";
+import { auth, db } from "@/config/firebase";
+import { setDoc, doc, addDoc, collection } from "firebase/firestore";
 
 interface AuthContextType {
   user: User | null;
@@ -14,7 +15,6 @@ interface AuthContextType {
   handleSignUp: (email: string, password: string, username: string) => Promise<void>;
   handleSignOut: () => Promise<void>;
   handleSignIn: (email: string, password: string) => Promise<void>;
-  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -25,7 +25,7 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const userRef = collection(db, "users")
 
   console.log(user)
 
@@ -33,27 +33,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
   const handleSignUp = async (email: string, password: string, username: string): Promise<void> => {
-    setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid; // Get the auto-generated firebase uid
+  
+      // Store user data in Firestore with the UID as the document ID
+      await setDoc(doc(userRef, userId), {
+        username,
+        email,
+        createdAt: new Date(),
+      });
+  
       setUser(userCredential.user);
       alert("Sign up success");
-      window.location.href = "/"; // Redirect after sign-up
-    } catch (error) {
+    } catch (error: any) {
       alert(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSignIn = async (email: string, password: string): Promise<void> => {
-    setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setUser(userCredential.user);
@@ -62,29 +65,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.error(error.message);
       alert("Login failed");
     } finally {
-      setLoading(false);
     }
   };
 
   const handleSignOut = async (): Promise<void> => {
-    setLoading(true);
     try {
       console.log("signing out...")
       await signOut(auth);
       setUser(null);
-      window.location.href = "/"; // Redirect to home page after logout
+      window.location.href = "/login"; // Redirect to home page after logout
     } catch (error) {
       console.error(error.message);
     } finally {
-      setLoading(false);
     }
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, userDetails: null, handleSignUp, handleSignIn, loading, handleSignOut }}
+      value={{ user, userDetails: null, handleSignUp, handleSignIn, handleSignOut }}
     >
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
