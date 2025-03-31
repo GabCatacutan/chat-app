@@ -1,46 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { addDoc, collection } from "firebase/firestore";
+import { db } from "@/config/firebase";
+import { collection, addDoc, onSnapshot, orderBy, query, Timestamp } from "firebase/firestore";
+import { useAuth } from "./context/AuthProvider";
+
+interface Message {
+  id: string;
+  text: string;
+  user: string;
+  timestamp: string;
+}
 
 export default function Chatbox() {
-  const [newMessage, setNewMessage] = useState("");
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hello! How can I help you today?", user: "Bot", timestamp: new Date().toLocaleString() },
-    { id: 2, text: "Can you tell me about Firebase?", user: "User", timestamp: new Date().toLocaleString() },
-    { id: 3, text: "Sure! Firebase is a platform by Google...", user: "Bot", timestamp: new Date().toLocaleString() },
-  ]);
-  const [visibleTimestamp, setVisibleTimestamp] = useState(null);
+  const {user} = useAuth()
+  console.log(user)
+  const [newMessage, setNewMessage] = useState<string>("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [visibleTimestamp, setVisibleTimestamp] = useState<string | null>(null);
 
-  function handleTimestampClick(id) {
+  useEffect(() => {
+    const q = query(collection(db, "messages"), orderBy("timestamp", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMessages(
+        snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            text: data.text,
+            user: data.user,
+            timestamp: data.timestamp instanceof Timestamp ? data.timestamp.toDate().toLocaleString() : "",
+          };
+        })
+      );
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  function handleTimestampClick(id: string) {
     setVisibleTimestamp(visibleTimestamp === id ? null : id);
   }
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!newMessage.trim()) return;
-    
-    const newMsg = { id: messages.length + 1, text: newMessage, user: "User", timestamp: new Date().toLocaleString() };
-    setMessages([...messages, newMsg]);
-    setNewMessage("");
 
-    // Simulating Firebase Firestore
-    // await addDoc(collection(db, "messages"), {
-    //   text: newMessage,
-    //   timestamp: new Date(),
-    //   user: user.displayName,
-    // });
+    await addDoc(collection(db, "messages"), {
+      text: newMessage,
+      user: user.uid,
+      timestamp: Timestamp.now(),
+    });
+
+    setNewMessage("");
   }
 
   return (
-    <div className="flex flex-col bg-card border rounded-lg flex-grow-2 p-4">
+    <div className="flex flex-col bg-card border rounded-lg flex-grow p-4">
       <div className="px-5 py-2 h-15 content-center">Chat for //User//</div>
       <hr />
       <div className="flex-grow overflow-y-auto p-3 h-60 border rounded-lg space-y-2">
         {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.user === "User" ? "justify-end" : "justify-start"}`}>
+          <div key={msg.id} className={`flex ${msg.user === user.uid ? "justify-end" : "justify-start"}`}>
             <div 
-              className={`max-w-xs p-3 rounded-xl cursor-pointer ${msg.user === "User" ? "bg-primary" : "bg-secondary"}`} 
+              className={`max-w-xs p-3 rounded-xl cursor-pointer ${msg.user === user.uid ? "bg-primary" : "bg-secondary"}`} 
               onClick={() => handleTimestampClick(msg.id)}
             >
               <strong>{msg.user}: </strong>{msg.text}
@@ -55,7 +78,7 @@ export default function Chatbox() {
         <Input
           type="text"
           placeholder="Enter message..."
-          className="flex-grow-2"
+          className="flex-grow"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
         />
