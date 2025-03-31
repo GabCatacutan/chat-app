@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { NewConversationModal } from "./NewConversationModal";
 import { Input } from "./ui/input";
 import { db } from "@/config/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import Conversation from "./Conversation";
 import { useParams } from "react-router";
+import { useAuth } from "./context/AuthProvider";
 
 // Define the user type
 interface Conversation {
@@ -32,6 +33,7 @@ const sampleConversations = [
 
 export default function ConversationsList() {
   const [loading, setLoading] = useState<boolean>(false)
+  const {user} = useAuth()
 
   const [conversations , setConversations] = useState<Conversation[]>([])
 
@@ -40,7 +42,8 @@ export default function ConversationsList() {
       try {
         setLoading(true);
         const conversationCollection = collection(db, "conversations");
-        const conversationSnapshot = await getDocs(conversationCollection);
+        const q = query(conversationCollection, where("members", "array-contains", user?.uid));
+        const conversationSnapshot = await getDocs(q);
         const conversationList: Conversation[] = conversationSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...(doc.data() as Conversation), // Type assertion
@@ -52,9 +55,9 @@ export default function ConversationsList() {
         setLoading(false);
       }
     };
-  
+
     fetchConversations();
-  }, []);
+  }, [user?.uid]);
   
 
   //Retrieve messages here
