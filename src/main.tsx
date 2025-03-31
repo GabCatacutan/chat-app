@@ -14,6 +14,10 @@ const router = createBrowserRouter([
     element: <App />,
   },
   {
+    path: "/:conversationId",
+    element: <App />,
+  },
+  {
     path: "/login",
     element: <LoginPage />,
   },

@@ -1,8 +1,15 @@
-import Conversation from "./Conversation";
+import { useEffect, useState } from "react";
 import { NewConversationModal } from "./NewConversationModal";
 import { Input } from "./ui/input";
+import { db } from "@/config/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import Conversation from "./Conversation";
+import { useParams } from "react-router";
 
-
+// Define the user type
+interface Conversation {
+  members: string[];
+}
 
 const sampleConversations = [
   {
@@ -24,9 +31,36 @@ const sampleConversations = [
 ];
 
 export default function ConversationsList() {
+  const {conversationId} = useParams();
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const [conversations , setConversations] = useState<Conversation[]>([])
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        setLoading(true);
+        const conversationCollection = collection(db, "conversations");
+        const conversationSnapshot = await getDocs(conversationCollection);
+        const conversationList: Conversation[] = conversationSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Conversation), // Type assertion
+        }));
+        setConversations(conversationList);
+      } catch (error) {
+        console.error("Error fetching conversations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchConversations();
+  }, []);
+  
+
   //Retrieve messages here
   return (
-    <div className="bg-card flex flex-col border rounded-lg  flex-grow-1">
+    <div className="bg-card flex flex-col border rounded-lg flex-grow-1">
       <div className="flex px-5 py-2 h-15">
         <p className="content-center">Chats</p>
         <div className="ml-auto content-center">
@@ -37,8 +71,8 @@ export default function ConversationsList() {
       <hr></hr>
       {/* For each conversation retrieved, render 1 <Component /> */}
       <div className="overflow-y-auto">
-        {sampleConversations.length > 0 ? (
-          sampleConversations.map((conv) => <Conversation {...conv} />)
+        {conversations.length > 0 ? (
+          conversations.map((conv) => <Conversation {...conv} />)
         ) : (
           <p className="text-center py-4 text-gray-500">No conversations yet</p>
         )}

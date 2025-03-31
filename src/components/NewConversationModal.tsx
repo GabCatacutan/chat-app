@@ -25,7 +25,7 @@ import {
 import { ChevronsUpDown, Check } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { db } from "@/config/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 import { useAuth } from "./context/AuthProvider";
 
 // Define the user type
@@ -35,7 +35,8 @@ interface User {
 }
 
 export function NewConversationModal() {
-  const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>(""); // Store selected user ID
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -65,16 +66,20 @@ export function NewConversationModal() {
   }, [user]);
 
   // Handle submit button click
-  const handleSave = () => {
+  const handleSave = async () => {
     if (selectedUserId) {
       console.log("Selected User ID:", selectedUserId);
+      await addDoc(collection(db, "conversations"), {
+        members: [selectedUserId, user?.uid],
+      });
+      setDialogOpen(false)
     } else {
       console.log("No user selected.");
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" disabled={loading}>
           {loading ? "Loading..." : "+"}
@@ -87,7 +92,7 @@ export function NewConversationModal() {
             Enter Username to add to your conversations
           </DialogDescription>
         </DialogHeader>
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
