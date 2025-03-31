@@ -1,5 +1,4 @@
 export default function Conversation({ username, img_url, date_created }) {
-  console.log(img_url)
   return (
     <div className="flex items-center p-3 border-b cursor-pointer hover:bg-secondary rounded-lg">
       {/* Profile Picture */}

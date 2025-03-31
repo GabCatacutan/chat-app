@@ -27,8 +27,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const userRef = collection(db, "users")
 
-  console.log(user)
-
   // ✅ Automatically persist user state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
