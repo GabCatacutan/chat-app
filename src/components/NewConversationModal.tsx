@@ -68,7 +68,6 @@ export function NewConversationModal() {
   // Handle submit button click
   const handleSave = async () => {
     if (selectedUserId) {
-      console.log("Selected User ID:", selectedUserId);
       await addDoc(collection(db, "conversations"), {
         members: [selectedUserId, user?.uid],
       });

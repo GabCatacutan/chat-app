@@ -18,7 +18,6 @@ function SignUp() {
   const handleSignUpSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true)
-    console.log(email, password, username);
     try {
       await handleSignUp(email, password, username);
     } catch (error: any) {

@@ -68,7 +68,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const handleSignOut = async (): Promise<void> => {
     try {
-      console.log("signing out...")
       await signOut(auth);
       setUser(null);
       window.location.href = "/login"; // Redirect to home page after logout
