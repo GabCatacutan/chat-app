@@ -31,7 +31,6 @@ const sampleConversations = [
 ];
 
 export default function ConversationsList() {
-  const {conversationId} = useParams();
   const [loading, setLoading] = useState<boolean>(false)
 
   const [conversations , setConversations] = useState<Conversation[]>([])

@@ -1,9 +1,15 @@
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 
 export default function Conversation({ id, username, img_url, date_created }) {
+  const {conversationId} = useParams()
+  
   return (
     <Link to={`/${id}`} className="block">
-      <div className="flex items-center p-3 border-b cursor-pointer hover:bg-secondary rounded-lg">
+      <div
+        className={`flex items-center p-3 border-b cursor-pointer rounded-lg 
+          hover:bg-secondary 
+          ${conversationId === id ? "bg-primary" : "bg-transparent"}`}
+      >
         {/* Profile Picture */}
         <img
           src={img_url}
