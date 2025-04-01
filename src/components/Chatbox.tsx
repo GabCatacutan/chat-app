@@ -42,11 +42,12 @@ export default function Chatbox() {
   const [newMessage, setNewMessage] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [visibleTimestamp, setVisibleTimestamp] = useState<string | null>(null);
-  const [chatPartner, setChatPartner] = useState()
+  const [chatPartner, setChatPartner] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  //Use effect for fetching 
   useEffect(() => {
     if (!conversationId) return;
+    setLoading(true);
 
     const q = query(
       collection(db, "messages"),
@@ -70,27 +71,25 @@ export default function Chatbox() {
       );
 
       setMessages(messagesWithUsernames);
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, [conversationId]);
 
-
-  //Use effect for fetching chat partner
   useEffect(() => {
     if (!conversationId || !user) return;
-  
+    setLoading(true);
+
     const fetchChatPartner = async () => {
       try {
         const conversationRef = doc(db, "conversations", conversationId);
         const conversationSnap = await getDoc(conversationRef);
-  
+
         if (conversationSnap.exists()) {
           const members: string[] = conversationSnap.data().members;
-  
-          // Find the other participant (excluding current user)
           const otherUserId = members.find((id) => id !== user.uid);
-  
+
           if (otherUserId) {
             const username = await fetchUsername(otherUserId);
             setChatPartner(username);
@@ -98,9 +97,11 @@ export default function Chatbox() {
         }
       } catch (error) {
         console.error("Error fetching chat partner:", error);
+      } finally {
+        setLoading(false);
       }
     };
-  
+
     fetchChatPartner();
   }, [conversationId, user]);
 
@@ -122,6 +123,10 @@ export default function Chatbox() {
     setNewMessage("");
   }
 
+  if (loading) {
+    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">Loading...</div>;
+  }
+
   if (!conversationId) {
     return (
       <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">
@@ -132,28 +137,23 @@ export default function Chatbox() {
 
   return (
     <div className="flex flex-col bg-card border rounded-lg flex-grow p-4">
-      <div className="px-5 py-2 h-15 content-center">Now chatting with {chatPartner} </div>
-      <hr />
+      <div className="px-5 py-2 h-15 content-center">
+        Now chatting with {chatPartner || "..."}
+      </div>
       <div className="flex-grow overflow-y-auto p-3 h-60 border rounded-lg space-y-2">
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${
-              msg.senderId === user.uid ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${msg.senderId === user.uid ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-xs p-3 rounded-xl cursor-pointer ${
-                msg.senderId === user.uid ? "bg-primary" : "bg-secondary"
-              }`}
+              className={`max-w-xs p-3 rounded-xl cursor-pointer ${msg.senderId === user.uid ? "bg-primary" : "bg-secondary"}`}
               onClick={() => handleTimestampClick(msg.id)}
             >
               <strong>{msg.username}: </strong>
               {msg.text}
               {visibleTimestamp === msg.id && (
-                <div className="text-xs text-gray-500 mt-1">
-                  {msg.timestamp}
-                </div>
+                <div className="text-xs text-gray-500 mt-1">{msg.timestamp}</div>
               )}
             </div>
           </div>

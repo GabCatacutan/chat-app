@@ -12,30 +12,10 @@ interface Conversation {
   members: string[];
 }
 
-const sampleConversations = [
-  {
-    username: "User 1",
-    img_url: "src/assets/yoru.webp",
-    date_created: "Date",
-  },
-  {
-    username: "User 2",
-    img_url: "src/assets/yoru.webp",
-    date_created: "Date",
-  },
-  {
-    username: "User 3",
-    img_url: "src/assets/yoru.webp",
-    date_created: "Date",
-  },
-  
-];
-
 export default function ConversationsList() {
-  const [loading, setLoading] = useState<boolean>(false)
-  const {user} = useAuth()
-
-  const [conversations , setConversations] = useState<Conversation[]>([])
+  const [loading, setLoading] = useState<boolean>(false);
+  const { user } = useAuth();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
     const fetchConversations = async () => {
@@ -58,27 +38,29 @@ export default function ConversationsList() {
 
     fetchConversations();
   }, [user?.uid]);
-  
 
-  //Retrieve messages here
   return (
     <div className="bg-card flex flex-col border rounded-lg flex-grow-1">
       <div className="flex px-5 py-2 h-15">
         <p className="content-center">Chats</p>
         <div className="ml-auto content-center">
           {" "}
-          <NewConversationModal></NewConversationModal>
+          <NewConversationModal />
         </div>
       </div>
-      <hr></hr>
-      {/* For each conversation retrieved, render 1 <Component /> */}
-      <div className="overflow-y-auto">
-        {conversations.length > 0 ? (
-          conversations.map((conv) => <Conversation {...conv} />)
-        ) : (
-          <p className="text-center py-4 text-gray-500">No conversations yet</p>
-        )}
-      </div>
+      <hr />
+      {/* Loading state */}
+      {loading ? (
+        <div className="flex justify-center items-center py-4">Loading conversations...</div>
+      ) : (
+        <div className="overflow-y-auto">
+          {conversations.length > 0 ? (
+            conversations.map((conv) => <Conversation key={conv.id} {...conv} />)
+          ) : (
+            <p className="text-center py-4 text-gray-500">No conversations yet</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
