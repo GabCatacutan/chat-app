@@ -15,6 +15,8 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "./context/AuthProvider";
 import { useParams } from "react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 
 interface Message {
   id: string;
@@ -44,6 +46,7 @@ export default function Chatbox() {
   const [visibleTimestamp, setVisibleTimestamp] = useState<string | null>(null);
   const [chatPartner, setChatPartner] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     if (!conversationId) return;
@@ -120,19 +123,20 @@ export default function Chatbox() {
       timestamp: Timestamp.now(),
     });
 
+    queryClient.invalidateQueries(["messages"]); // Refresh conversations list
     setNewMessage("");
   }
-
-  if (loading) {
-    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">Loading...</div>;
-  }
-
+  
   if (!conversationId) {
     return (
       <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">
         <p className="text-gray-500">No conversation selected. Please choose a chat.</p>
       </div>
     );
+  }
+
+  if (loading) {
+    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">Loading...</div>;
   }
 
   return (

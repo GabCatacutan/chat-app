@@ -10,8 +10,8 @@ function App() {
     <div className="flex h-screen p-5 space-x-10">
       <QueryClientProvider client={queryClient}>
         <ConversationsList />
-      </QueryClientProvider>
       <Chatbox />
+      </QueryClientProvider>
     </div>
   );
 }
