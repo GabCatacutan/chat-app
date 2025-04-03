@@ -1,56 +1,96 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import sampleProfPic from "@/assets/sampleprofpic.jpg";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@radix-ui/react-label";
+import { useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import { db } from "@/config/firebase";
+import { doc, getDoc } from "firebase/firestore";
+
 export default function Profile() {
+  const { userId } = useParams();
+  const [image, setImage] = useState(sampleProfPic);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({ username: "", email: "" });
+
+  const { data: user, isLoading } = useQuery({
+    queryKey: ["user", userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const userRef = doc(db, "users", userId);
+      const userSnapshot = await getDoc(userRef);
+      return userSnapshot.exists() ? userSnapshot.data() : null;
+    },
+    enabled: !!userId,
+  });
+
+  if (isLoading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+
+  const handleProfileSubmit = (e) => {
+    e.preventDefault();
+    setIsEditing(false);
+  };
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen">
       <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle className="justify-self-center">Profile</CardTitle>
+          <CardTitle className="text-center">Profile</CardTitle>
         </CardHeader>
         <CardContent>
-          <form>
-            <div></div>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Name of your project" />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="framework">Framework</Label>
-                <Select>
-                  <SelectTrigger id="framework">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectItem value="next">Next.js</SelectItem>
-                    <SelectItem value="sveltekit">SvelteKit</SelectItem>
-                    <SelectItem value="astro">Astro</SelectItem>
-                    <SelectItem value="nuxt">Nuxt.js</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="flex flex-col items-center">
+            <img
+              src={image}
+              alt="User Avatar"
+              className="rounded-full w-24 h-24 object-cover border"
+            />
+          </div>
+          {isEditing ? (
+            <div className="space-y-2 mt-4">
+              <Input
+                type="text"
+                name="email"
+                placeholder="Enter Email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              <Input
+                type="text"
+                name="username"
+                placeholder="Enter Username"
+                value={formData.username}
+                onChange={handleChange}
+              />
             </div>
-          </form>
+          ) : (
+            <div className="mt-4 text-center">
+              <p>Email: {user?.email || "N/A"}</p>
+              <p>Name: {user?.username || "N/A"}</p>
+            </div>
+          )}
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline">Cancel</Button>
-          <Button>Deploy</Button>
+          {isEditing ? (
+            <>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleProfileSubmit}>Save</Button>
+            </>
+          ) : (
+            <Button onClick={() => setIsEditing(true)}>Edit</Button>
+          )}
         </CardFooter>
       </Card>
     </div>

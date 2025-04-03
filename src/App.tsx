@@ -8,10 +8,8 @@ const queryClient = new QueryClient()
 function App() {
   return (
     <div className="flex h-screen p-5 space-x-10">
-      <QueryClientProvider client={queryClient}>
         <ConversationsList />
       <Chatbox />
-      </QueryClientProvider>
     </div>
   );
 }

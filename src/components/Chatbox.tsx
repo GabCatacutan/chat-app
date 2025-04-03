@@ -130,13 +130,13 @@ export default function Chatbox() {
   if (!conversationId) {
     return (
       <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">
-        <p className="text-gray-500">No conversation selected. Please choose a chat.</p>
+        <p className="text-gray-500">No conversation selected. Please choose a conversation to view messages.</p>
       </div>
     );
   }
 
   if (loading) {
-    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">Loading...</div>;
+    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">Loading chat...</div>;
   }
 
   return (
