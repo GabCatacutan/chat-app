@@ -23,10 +23,11 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { ChevronsUpDown, Check } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { db } from "@/config/firebase";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 import { useAuth } from "./context/AuthProvider";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Define the user type
 interface User {
@@ -38,71 +39,63 @@ export function NewConversationModal() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>(""); // Store selected user ID
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const usersCollection = collection(db, "users");
-        const userSnapshot = await getDocs(usersCollection);
-        const userList: User[] = userSnapshot.docs
-          .map((doc) => ({
-            id: doc.id,
-            username: doc.data().username || "Unknown User",
-          }))
-          .filter((u) => u.id !== user?.uid);
-        setUsers(userList);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch users using React Query
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      if (!user?.uid) return [];
+      const usersCollection = collection(db, "users");
+      const userSnapshot = await getDocs(usersCollection);
+      return userSnapshot.docs
+        .map((doc) => ({
+          id: doc.id,
+          username: doc.data().username || "Unknown User",
+        }))
+        .filter((u) => u.id !== user.uid);
+    },
+    enabled: !!user?.uid, // Prevents query execution if no user is logged in
+  });
 
-    fetchUsers();
-  }, [user]);
-
-  // Handle submit button click
-  const handleSave = async () => {
-    if (selectedUserId) {
-      await addDoc(collection(db, "conversations"), {
-        members: [selectedUserId, user?.uid],
+  // Mutation to add a new conversation
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedUserId || !user?.uid) return;
+      return addDoc(collection(db, "conversations"), {
+        members: [selectedUserId, user.uid],
       });
-      setDialogOpen(false)
-    } else {
-      console.log("No user selected.");
-    }
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["conversations"]); // Refresh conversations list
+      setDialogOpen(false);
+    },
+  });
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" disabled={loading}>
-          {loading ? "Loading..." : "+"}
+        <Button variant="outline" disabled={isLoading}>
+          {isLoading ? "Loading..." : "+"}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>New Conversation</DialogTitle>
-          <DialogDescription>
-            Enter Username to add to your conversations
-          </DialogDescription>
+          <DialogDescription>Select a user to start a chat</DialogDescription>
         </DialogHeader>
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
-              aria-expanded={open}
+              aria-expanded={popoverOpen}
               className="w-[200px] justify-between"
             >
               {selectedUserId
-                ? users.find((user) => user.id === selectedUserId)?.username ||
-                  "Unknown User"
-                : "Select User to chat with"}
+                ? users.find((u) => u.id === selectedUserId)?.username || "Unknown User"
+                : "Select User"}
               <ChevronsUpDown className="opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -110,7 +103,7 @@ export function NewConversationModal() {
             <Command>
               <CommandInput placeholder="Search user..." className="h-9" />
               <CommandList>
-                {loading ? (
+                {isLoading ? (
                   <CommandEmpty>Loading users...</CommandEmpty>
                 ) : users.length === 0 ? (
                   <CommandEmpty>No user found.</CommandEmpty>
@@ -120,22 +113,13 @@ export function NewConversationModal() {
                       <CommandItem
                         key={user.id}
                         value={user.id}
-                        onSelect={(currentValue: string) => {
-                          setSelectedUserId(
-                            currentValue === selectedUserId ? "" : currentValue
-                          );
-                          setOpen(false);
+                        onSelect={() => {
+                          setSelectedUserId((prev) => (prev === user.id ? "" : user.id));
+                          setPopoverOpen(false);
                         }}
                       >
                         {user.username}
-                        <Check
-                          className={cn(
-                            "ml-auto",
-                            selectedUserId === user.id
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
+                        <Check className={cn("ml-auto", selectedUserId === user.id ? "opacity-100" : "opacity-0")} />
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -145,8 +129,8 @@ export function NewConversationModal() {
           </PopoverContent>
         </Popover>
         <DialogFooter>
-          <Button type="button" onClick={handleSave}>
-            Save changes
+          <Button type="button" onClick={() => mutation.mutate()} disabled={!selectedUserId || mutation.isLoading}>
+            {mutation.isLoading ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

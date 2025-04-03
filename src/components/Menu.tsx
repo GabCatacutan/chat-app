@@ -14,6 +14,26 @@ export default function Menu() {
   const { setTheme } = useTheme();
   const { handleSignOut, user } = useAuth();
 
+  const unauthMenu = (
+    <>
+      {" "}
+      <DropdownMenuItem onClick={() => (window.location.href = "/login")}>
+        Login/Sign-Up
+      </DropdownMenuItem>
+    </>
+  );
+
+  const authMenu = (
+    <>
+      <DropdownMenuItem
+        onClick={() => (window.location.href = `/profile/${user.uid}`)}
+      >
+        Profile
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={handleSignOut}>Logout</DropdownMenuItem>
+    </>
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -21,14 +41,7 @@ export default function Menu() {
           <MenuIcon />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => (window.location.href = "/login")}>
-          Login/Sign-Up
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleSignOut()}>
-          Logout
-        </DropdownMenuItem>
-      </DropdownMenuContent>
+      <DropdownMenuContent>{user ? authMenu : unauthMenu}</DropdownMenuContent>
     </DropdownMenu>
   );
 }

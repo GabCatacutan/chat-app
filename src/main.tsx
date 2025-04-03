@@ -8,6 +8,7 @@ import { ThemeProvider } from "./components/context/ThemeProvider.tsx";
 import Navbar from "./components/Navbar.tsx";
 import { AuthProvider } from "./components/context/AuthProvider.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
+import Profile from "./pages/Profile.tsx";
 
 const router = createBrowserRouter([
   {
@@ -17,6 +18,10 @@ const router = createBrowserRouter([
   {
     path: "/:conversationId",
     element: <ProtectedRoute><App /></ProtectedRoute>,
+  },
+  {
+    path: "/profile/:profileId",
+    element: <ProtectedRoute><Profile /></ProtectedRoute>,
   },
   {
     path: "/login",
