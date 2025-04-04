@@ -35,7 +35,9 @@ interface User {
   username: string;
 }
 
-export function NewConversationModal() {
+export function NewConversationModal(
+  uniqueMembers: string[] = { uniqueMembers }
+) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>(""); // Store selected user ID
@@ -49,12 +51,19 @@ export function NewConversationModal() {
       if (!user?.uid) return [];
       const usersCollection = collection(db, "users");
       const userSnapshot = await getDocs(usersCollection);
-      return userSnapshot.docs
+      const userData = userSnapshot.docs
         .map((doc) => ({
           id: doc.id,
           username: doc.data().username || "Unknown User",
         }))
         .filter((u) => u.id !== user.uid);
+
+      //Only include users that doesnt have a conversation yet
+      const filteredUsers = userData.filter(
+        (user) => !Object.values(uniqueMembers).includes(user.id)
+      );
+
+      return filteredUsers;
     },
     enabled: !!user?.uid, // Prevents query execution if no user is logged in
   });
@@ -94,7 +103,8 @@ export function NewConversationModal() {
               className="w-[200px] justify-between"
             >
               {selectedUserId
-                ? users.find((u) => u.id === selectedUserId)?.username || "Unknown User"
+                ? users.find((u) => u.id === selectedUserId)?.username ||
+                  "Unknown User"
                 : "Select User"}
               <ChevronsUpDown className="opacity-50" />
             </Button>
@@ -114,12 +124,21 @@ export function NewConversationModal() {
                         key={user.id}
                         value={user.id}
                         onSelect={() => {
-                          setSelectedUserId((prev) => (prev === user.id ? "" : user.id));
+                          setSelectedUserId((prev) =>
+                            prev === user.id ? "" : user.id
+                          );
                           setPopoverOpen(false);
                         }}
                       >
                         {user.username}
-                        <Check className={cn("ml-auto", selectedUserId === user.id ? "opacity-100" : "opacity-0")} />
+                        <Check
+                          className={cn(
+                            "ml-auto",
+                            selectedUserId === user.id
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
                       </CommandItem>
                     ))}
                   </CommandGroup>
@@ -129,7 +148,11 @@ export function NewConversationModal() {
           </PopoverContent>
         </Popover>
         <DialogFooter>
-          <Button type="button" onClick={() => mutation.mutate()} disabled={!selectedUserId || mutation.isLoading}>
+          <Button
+            type="button"
+            onClick={() => mutation.mutate()}
+            disabled={!selectedUserId || mutation.isLoading}
+          >
             {mutation.isLoading ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>

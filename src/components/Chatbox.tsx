@@ -18,7 +18,6 @@ import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "./ui/spinner";
 
-
 interface Message {
   id: string;
   text: string;
@@ -47,7 +46,7 @@ export default function Chatbox() {
   const [visibleTimestamp, setVisibleTimestamp] = useState<string | null>(null);
   const [chatPartner, setChatPartner] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   //Fetches messages
   useEffect(() => {
@@ -81,7 +80,6 @@ export default function Chatbox() {
 
     return () => unsubscribe();
   }, [conversationId]);
-
 
   //Fetches recepient
   useEffect(() => {
@@ -130,22 +128,32 @@ export default function Chatbox() {
     queryClient.invalidateQueries(["messages"]); // Refresh conversations list
     setNewMessage("");
   }
-  
+
   if (!conversationId) {
     return (
       <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">
-        <p className="text-gray-500">No conversation selected. Please choose a conversation to view messages.</p>
+        <p className="text-gray-500">
+          No conversation selected. Please choose a conversation to view
+          messages.
+        </p>
       </div>
     );
   }
-  
 
   if (loading) {
-    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center"><Spinner /></div>;
+    return (
+      <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">
+        <Spinner />
+      </div>
+    );
   }
 
-  if(chatPartner == undefined){
-    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">No user found. Please select another conversation</div>
+  if (chatPartner == undefined) {
+    return (
+      <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">
+        No user found. Please select another conversation
+      </div>
+    );
   }
 
   return (
@@ -157,16 +165,22 @@ export default function Chatbox() {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.senderId === user.uid ? "justify-end" : "justify-start"}`}
+            className={`flex ${
+              msg.senderId === user.uid ? "justify-end" : "justify-start"
+            }`}
           >
             <div
-              className={`max-w-xs p-3 rounded-xl cursor-pointer ${msg.senderId === user.uid ? "bg-primary" : "bg-secondary"}`}
+              className={`max-w-xs p-3 rounded-xl cursor-pointer ${
+                msg.senderId === user.uid ? "bg-primary" : "bg-secondary"
+              }`}
               onClick={() => handleTimestampClick(msg.id)}
             >
               <strong>{msg.username}: </strong>
               {msg.text}
               {visibleTimestamp === msg.id && (
-                <div className="text-xs text-gray-500 mt-1">{msg.timestamp}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {msg.timestamp}
+                </div>
               )}
             </div>
           </div>
