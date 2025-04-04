@@ -10,6 +10,7 @@ import { AuthProvider } from "./components/context/AuthProvider.tsx";
 import ProtectedRoute from "./components/ProtectedRoute.tsx";
 import Profile from "./pages/Profile.tsx";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ErrorPage from "./pages/ErrorPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
         <App />
       </ProtectedRoute>
     ),
+    errorElement: <ErrorPage />
   },
   {
     path: "/:conversationId",
@@ -27,6 +29,7 @@ const router = createBrowserRouter([
         <App />
       </ProtectedRoute>
     ),
+    errorElement: <ErrorPage />
   },
   {
     path: "/profile/:userId",
@@ -35,10 +38,12 @@ const router = createBrowserRouter([
         <Profile />
       </ProtectedRoute>
     ),
+    errorElement: <ErrorPage />
   },
   {
     path: "/login",
     element: <LoginPage />,
+    errorElement: <ErrorPage />
   },
 ]);
 
