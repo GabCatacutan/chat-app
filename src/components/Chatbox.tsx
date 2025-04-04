@@ -16,6 +16,7 @@ import {
 import { useAuth } from "./context/AuthProvider";
 import { useParams } from "react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Spinner } from "./ui/spinner";
 
 
 interface Message {
@@ -48,6 +49,7 @@ export default function Chatbox() {
   const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient()
 
+  //Fetches messages
   useEffect(() => {
     if (!conversationId) return;
     setLoading(true);
@@ -80,6 +82,8 @@ export default function Chatbox() {
     return () => unsubscribe();
   }, [conversationId]);
 
+
+  //Fetches recepient
   useEffect(() => {
     if (!conversationId || !user) return;
     setLoading(true);
@@ -134,9 +138,14 @@ export default function Chatbox() {
       </div>
     );
   }
+  
 
   if (loading) {
-    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">Loading chat...</div>;
+    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center"><Spinner /></div>;
+  }
+
+  if(chatPartner == undefined){
+    return <div className="flex flex-col bg-card border rounded-lg flex-grow p-4 items-center justify-center">No user found. Please select another conversation</div>
   }
 
   return (

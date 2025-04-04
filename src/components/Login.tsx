@@ -26,7 +26,7 @@ function Login() {
     <>
       <Card className="w-full max-w-md hadow-lg">
         <CardHeader>
-          <CardTitle className="text-center ">Welcome Back</CardTitle>
+          <CardTitle className="text-center ">Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
