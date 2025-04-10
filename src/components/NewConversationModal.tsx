@@ -57,7 +57,7 @@ export function NewConversationModal(
         (user) => !Object.values(uniqueMembers).includes(user.id)
       );
 
-      return userData;
+      return filteredUsers;
     },
     enabled: !!user?.uid, // Prevents query execution if no user is logged in
   });
