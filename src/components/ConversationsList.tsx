@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { NewConversationModal } from "./NewConversationModal";
 import { db } from "@/config/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
@@ -28,7 +27,7 @@ export default function ConversationsList() {
       const conversationSnapshot = await getDocs(q);
       return conversationSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...(doc.data() as Conversation),
+        members:doc.data().members
       }));
     },
     enabled: !!user?.uid, // Ensure query runs only if user is logged in
@@ -54,8 +53,8 @@ export default function ConversationsList() {
       ) : (
         <div className="overflow-y-auto">
           {conversations.length > 0 ? (
-            conversations.map((conv) => (
-              <Conversation key={conv.id} {...conv} />
+            conversations.map((conv, index) => (
+              <Conversation key={index} {...conv} />
             ))
           ) : (
             <p className="text-center py-4 text-gray-500">

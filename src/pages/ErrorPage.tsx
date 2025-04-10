@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useRouteError, isRouteErrorResponse } from "react-router";
+import { useRouteError } from "react-router";
 
 export default function ErrorPage() {
   const error = useRouteError();

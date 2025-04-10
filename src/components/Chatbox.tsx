@@ -15,7 +15,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "./context/AuthProvider";
 import { useParams } from "react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "./ui/spinner";
 
 interface Message {
@@ -120,12 +120,12 @@ export default function Chatbox() {
 
     await addDoc(collection(db, "messages"), {
       text: newMessage,
-      user: user.uid,
+      user: user?.uid,
       conversationId: conversationId,
       timestamp: Timestamp.now(),
     });
 
-    queryClient.invalidateQueries(["messages"]); // Refresh conversations list
+    queryClient.invalidateQueries({ queryKey: ["messages"] });
     setNewMessage("");
   }
 
@@ -166,12 +166,12 @@ export default function Chatbox() {
           <div
             key={msg.id}
             className={`flex ${
-              msg.senderId === user.uid ? "justify-end" : "justify-start"
+              msg.senderId === user?.uid ? "justify-end" : "justify-start"
             }`}
           >
             <div
               className={`max-w-xs p-3 rounded-xl cursor-pointer ${
-                msg.senderId === user.uid ? "bg-primary" : "bg-secondary"
+                msg.senderId === user?.uid ? "bg-primary" : "bg-secondary"
               }`}
               onClick={() => handleTimestampClick(msg.id)}
             >

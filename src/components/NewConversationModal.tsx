@@ -23,20 +23,14 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { ChevronsUpDown, Check } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { db } from "@/config/firebase";
 import { addDoc, collection, getDocs } from "firebase/firestore";
 import { useAuth } from "./context/AuthProvider";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-// Define the user type
-interface User {
-  id: string;
-  username: string;
-}
-
 export function NewConversationModal(
-  uniqueMembers: string[] = { uniqueMembers }
+  uniqueMembers: string[]
 ) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
@@ -63,7 +57,7 @@ export function NewConversationModal(
         (user) => !Object.values(uniqueMembers).includes(user.id)
       );
 
-      return filteredUsers;
+      return userData;
     },
     enabled: !!user?.uid, // Prevents query execution if no user is logged in
   });
@@ -77,7 +71,7 @@ export function NewConversationModal(
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["conversations"]); // Refresh conversations list
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }); // Refresh conversations list
       setDialogOpen(false);
     },
   });
@@ -151,9 +145,9 @@ export function NewConversationModal(
           <Button
             type="button"
             onClick={() => mutation.mutate()}
-            disabled={!selectedUserId || mutation.isLoading}
+            disabled={!selectedUserId}
           >
-            {mutation.isLoading ? "Saving..." : "Save"}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

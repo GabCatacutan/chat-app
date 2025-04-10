@@ -4,8 +4,6 @@ import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { Input } from "./ui/input";
 import { useState } from "react";
 import { useAuth } from "./context/AuthProvider";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/config/firebase";
 
 function SignUp() {
   const { handleSignUp } = useAuth();

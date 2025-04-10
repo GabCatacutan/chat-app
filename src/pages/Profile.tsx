@@ -16,7 +16,7 @@ import { doc, getDoc } from "firebase/firestore";
 
 export default function Profile() {
   const { userId } = useParams();
-  const [image, setImage] = useState(sampleProfPic);
+  const [image] = useState(sampleProfPic);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ username: "", email: "" });
 
@@ -31,14 +31,14 @@ export default function Profile() {
     enabled: !!userId,
   });
 
-  if (isLoading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+  if (isLoading)
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
 
-  const handleProfileSubmit = (e) => {
-    e.preventDefault();
+  const handleButtonClick = () => {
     setIsEditing(false);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -86,7 +86,7 @@ export default function Profile() {
               <Button variant="outline" onClick={() => setIsEditing(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleProfileSubmit}>Save</Button>
+              <Button onClick={handleButtonClick}>Save</Button>
             </>
           ) : (
             <Button onClick={() => setIsEditing(true)}>Edit</Button>

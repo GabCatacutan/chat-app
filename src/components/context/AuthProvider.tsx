@@ -8,6 +8,7 @@ import {
 import { ReactNode, useContext, useState, createContext, useEffect } from "react";
 import { auth, db } from "@/config/firebase";
 import { setDoc, doc, collection } from "firebase/firestore";
+import { FirebaseError } from "firebase/app";
 
 interface AuthContextType {
   user: User | null;
@@ -65,9 +66,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setUser(userCredential.user);
       window.location.href = "/";
-    } catch (error) {
-      console.error(error.message);
-      alert("Login failed");
+    } catch (error: unknown) {
+      if (error instanceof FirebaseError) {
+        console.error(`Firebase error: ${error.message}`);
+        alert(`Login failed: ${error.message}`);
+      } else if (error instanceof Error) {
+        console.error(`General error: ${error.message}`);
+        alert(`Login failed: ${error.message}`);
+      } else {
+        console.error("Unknown error:", error);
+        alert("Login failed due to an unknown error.");
+      }
     } finally {
       setLoading(false);
     }
@@ -79,8 +88,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       await signOut(auth);
       setUser(null);
       window.location.href = "/login";
-    } catch (error) {
-      console.error(error.message);
+    } catch (error: unknown) {
+      if (error instanceof FirebaseError) {
+        console.error(`Firebase error: ${error.message}`);
+        alert(`Sign-out failed: ${error.message}`);
+      } else if (error instanceof Error) {
+        console.error(`General error: ${error.message}`);
+        alert(`Sign-out failed: ${error.message}`);
+      } else {
+        console.error("Unknown error:", error);
+        alert("Sign-out failed due to an unknown error.");
+      }
     } finally {
       setLoading(false);
     }

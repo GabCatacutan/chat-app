@@ -6,12 +6,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu as MenuIcon } from "lucide-react";
 import { Button } from "./ui/button";
-import { useTheme } from "./context/ThemeProvider";
-import { auth } from "@/config/firebase";
 import { useAuth } from "./context/AuthProvider";
 
 export default function Menu() {
-  const { setTheme } = useTheme();
   const { handleSignOut, user } = useAuth();
 
   const unauthMenu = (
@@ -26,7 +23,7 @@ export default function Menu() {
   const authMenu = (
     <>
       <DropdownMenuItem
-        onClick={() => (window.location.href = `/profile/${user.uid}`)}
+        onClick={() => (window.location.href = `/profile/${user?.uid}`)}
       >
         Profile
       </DropdownMenuItem>
